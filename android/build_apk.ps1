@@ -39,6 +39,8 @@ Write-Host "[2/7] Linking resources and generating R.java..."
     --manifest "$AppDir\AndroidManifest.xml" `
     -o "$BuildDir\base.apk" `
     --java "$BuildDir\gen" `
+    --min-sdk-version 26 `
+    --target-sdk-version 34 `
     --auto-add-overlay `
     "$BuildDir\resources.zip"
 if ($LASTEXITCODE -ne 0) { throw "aapt2 link failed" }
@@ -64,8 +66,12 @@ if ($LASTEXITCODE -ne 0) { throw "jar add classes.dex failed" }
 
 # Prepare native libs directory structure for jar
 New-Item -ItemType Directory -Force -Path "$BuildDir\native_libs\lib\arm64-v8a" | Out-Null
+New-Item -ItemType Directory -Force -Path "$BuildDir\native_libs\lib\armeabi-v7a" | Out-Null
 New-Item -ItemType Directory -Force -Path "$BuildDir\native_libs\lib\x86_64" | Out-Null
 Copy-Item "$AppDir\jniLibs\arm64-v8a\libkestrel_mobile.so" "$BuildDir\native_libs\lib\arm64-v8a\libkestrel_mobile.so"
+if (Test-Path "$AppDir\jniLibs\armeabi-v7a\libkestrel_mobile.so") {
+    Copy-Item "$AppDir\jniLibs\armeabi-v7a\libkestrel_mobile.so" "$BuildDir\native_libs\lib\armeabi-v7a\libkestrel_mobile.so"
+}
 Copy-Item "$AppDir\jniLibs\x86_64\libkestrel_mobile.so" "$BuildDir\native_libs\lib\x86_64\libkestrel_mobile.so"
 
 Push-Location "$BuildDir\native_libs"
