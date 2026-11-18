@@ -1,0 +1,254 @@
+export struct SegmentData {
+    index: int,
+    fill_ratio: float,
+    active: bool,
+}
+
+export struct DownloadItem {
+    id: string,
+    title: string,
+    dest_path: string,
+    mime_badge: string,
+    status: string,
+    progress: float,
+    telemetry: string,
+    is_active: bool,
+    is_expanded: bool,
+    segments: [SegmentData],
+}
+
+component SegmentTrack inherits Rectangle {
+    in property <[SegmentData]> segments;
+    height: 12px;
+    border-radius: 6px;
+    background: #0E1013;
+    border-width: 1px;
+    border-color: #23272F;
+    clip: true;
+
+    HorizontalLayout {
+        spacing: 2px;
+        padding: 1px;
+        for seg in root.segments : Rectangle {
+            horizontal-stretch: 1;
+            border-radius: 4px;
+            background: #1B1E24;
+            clip: true;
+
+            Rectangle {
+                x: 0;
+                width: parent.width * clamp(seg.fill_ratio, 0.0, 1.0);
+                background: seg.active ? #7CB4D8 : #4A708B;
+                border-radius: 3px;
+                animate width { duration: 100ms; easing: ease-out; }
+            }
+        }
+    }
+}
+
+component DownloadCard inherits Rectangle {
+    in-out property <DownloadItem> item;
+    callback toggle_pause(string);
+    callback toggle_expand(string);
+
+    border-radius: 14px;
+    background: #14161ACC;
+    border-width: 1px;
+    border-color: #FFFFFF1A;
+    clip: true;
+
+    VerticalLayout {
+        padding: 10px;
+        spacing: 8px;
+
+        HorizontalLayout {
+            spacing: 10px;
+            alignment: center;
+
+            // Vector MIME Badge
+            Rectangle {
+                width: 36px;
+                height: 36px;
+                border-radius: 8px;
+                background: #1E222A;
+                border-width: 1px;
+                border-color: #2F3542;
+
+                Text {
+                    text: root.item.mime_badge;
+                    color: #7CB4D8;
+                    font-size: 11px;
+                    font-weight: 700;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                }
+            }
+
+            // Info column
+            VerticalLayout {
+                horizontal-stretch: 1;
+                spacing: 2px;
+
+                Text {
+                    text: root.item.title;
+                    color: #F4F6F9;
+                    font-size: 13px;
+                    font-weight: 600;
+                    overflow: elide;
+                }
+
+                Text {
+                    text: root.item.telemetry;
+                    color: #A0A5AD;
+                    font-size: 11px;
+                    font-family: "monospace";
+                }
+            }
+
+            // Circular Pause/Resume Ring Button
+            TouchArea {
+                width: 32px;
+                height: 32px;
+                clicked => { root.toggle_pause(root.item.id); }
+
+                Rectangle {
+                    width: 32px;
+                    height: 32px;
+                    border-radius: 16px;
+                    background: #1E222A;
+                    border-width: 1px;
+                    border-color: #7CB4D844;
+
+                    Text {
+                        text: root.item.is_active ? "||" : ">";
+                        color: #7CB4D8;
+                        font-size: 12px;
+                        font-weight: 700;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+                }
+            }
+        }
+
+        // Linear multi-segment bar
+        SegmentTrack {
+            segments: root.item.segments;
+        }
+
+        // Expanded view details
+        if (root.item.is_expanded) : HorizontalLayout {
+            spacing: 6px;
+            animate height { duration: 180ms; easing: ease-out; }
+
+            Rectangle {
+                border-radius: 6px;
+                background: #1B1E24;
+                padding-left: 6px;
+                padding-right: 6px;
+                height: 20px;
+
+                Text {
+                    text: "SHA-256 Verified";
+                    color: #7CB4D8;
+                    font-size: 10px;
+                    vertical-alignment: center;
+                }
+            }
+
+            Rectangle {
+                border-radius: 6px;
+                background: #1B1E24;
+                padding-left: 6px;
+                padding-right: 6px;
+                height: 20px;
+
+                Text {
+                    text: root.item.dest_path;
+                    color: #A0A5AD;
+                    font-size: 10px;
+                    overflow: elide;
+                    vertical-alignment: center;
+                }
+            }
+        }
+    }
+
+    TouchArea {
+        clicked => { root.toggle_expand(root.item.id); }
+    }
+}
+
+export component KestrelApp inherits Window {
+    width: 380px;
+    height: 600px;
+    title: "Kestrel";
+    background: #0E1013;
+
+    in-out property <[DownloadItem]> items: [];
+    in-out property <string> url_input: "";
+    callback enqueue_url(string);
+    callback toggle_pause(string);
+    callback toggle_expand(string);
+
+    VerticalLayout {
+        padding: 12px;
+        spacing: 10px;
+
+        // Header & Quick Add Capsule
+        Rectangle {
+            height: 48px;
+            border-radius: 20px;
+            background: #14161ACC;
+            border-width: 1px;
+            border-color: #FFFFFF1A;
+
+            HorizontalLayout {
+                padding: 6px;
+                spacing: 8px;
+
+                TextInput {
+                    text <=> root.url_input;
+                    color: #F4F6F9;
+                    font-size: 13px;
+                    vertical-alignment: center;
+                    horizontal-stretch: 1;
+                }
+
+                Rectangle {
+                    width: 36px;
+                    height: 36px;
+                    border-radius: 18px;
+                    background: #7CB4D8;
+
+                    Text {
+                        text: "+";
+                        color: #14161A;
+                        font-size: 18px;
+                        font-weight: 700;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+
+                    TouchArea {
+                        clicked => {
+                            if (root.url_input != "") {
+                                root.enqueue_url(root.url_input);
+                                root.url_input = "";
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Active Downloads List
+        ListView {
+            for item in root.items : DownloadCard {
+                item: item;
+                toggle_pause(id) => { root.toggle_pause(id); }
+                toggle_expand(id) => { root.toggle_expand(id); }
+            }
+        }
+    }
+}

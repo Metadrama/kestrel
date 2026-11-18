@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="bg_dark">#0E1013</color>
+    <color name="card_bg">#14161A</color>
+    <color name="card_border">#1AFFFFFF</color>
+    <color name="accent_ice">#7CB4D8</color>
+    <color name="accent_ice_dark">#4A708B</color>
+    <color name="text_primary">#F4F6F9</color>
+    <color name="text_secondary">#A0A5AD</color>
+    <color name="badge_bg">#1E222A</color>
+    <color name="badge_border">#2F3542</color>
+    <color name="track_bg">#0E1013</color>
+    <color name="track_cell_bg">#1B1E24</color>
+</resources>

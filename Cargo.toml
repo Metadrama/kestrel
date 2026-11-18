@@ -1,0 +1,25 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/kestrel-proto",
+    "crates/kestrel-store",
+    "crates/kestrel-core",
+    "crates/kestrel-ipc",
+    "crates/kestrel-daemon",
+    "crates/kestrel-bridge",
+    "crates/kestrel-ui",
+    "crates/kestrel-mobile",
+    "tests/integration",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "MIT OR Apache-2.0"
+authors = ["Metadrama <kestrel@github.io>"]
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+strip = true

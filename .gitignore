@@ -1,0 +1,12 @@
+/target
+**/*.rs.bk
+*.apk
+!kestrel-release.apk
+.idea/
+.vscode/
+*.part
+android/build/
+android/compiled/
+android/classes/
+android/obj/
+android/classes.dex

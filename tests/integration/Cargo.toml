@@ -1,0 +1,18 @@
+[package]
+name = "kestrel-integration-tests"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+
+[dependencies]
+kestrel-proto = { path = "../../crates/kestrel-proto" }
+kestrel-store = { path = "../../crates/kestrel-store" }
+kestrel-core = { path = "../../crates/kestrel-core" }
+tokio = { version = "1.43", features = ["full"] }
+hyper = { version = "1.5", features = ["full"] }
+hyper-util = { version = "0.1", features = ["full"] }
+http-body-util = "0.1"
+sha2 = "0.10"
+tempfile = "3.17"
+bytes = "1.10"

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Kestrel</string>
+    <string name="url_hint">Paste link (Direct, HLS, X, Reddit, YT)...</string>
+    <string name="sha_verified">SHA-256 Verified</string>
+</resources>

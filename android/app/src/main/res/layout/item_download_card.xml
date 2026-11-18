@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/card_background"
+    android:padding="10dp"
+    android:layout_marginBottom="8dp">
+
+    <!-- Top Card Row -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <!-- 36px MIME Icon Badge -->
+        <TextView
+            android:id="@+id/tvMimeBadge"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:background="@drawable/badge_background"
+            android:gravity="center"
+            android:text="FILE"
+            android:textColor="@color/accent_ice"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:layout_marginEnd="10dp" />
+
+        <!-- Info Column -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:singleLine="true"
+                android:ellipsize="end"
+                android:textColor="@color/text_primary"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvTelemetry"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:singleLine="true"
+                android:textColor="@color/text_secondary"
+                android:textSize="11sp"
+                android:typeface="monospace"
+                android:layout_marginTop="2dp" />
+        </LinearLayout>
+
+        <!-- Circular Action Button -->
+        <TextView
+            android:id="@+id/btnAction"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:background="@drawable/circle_button"
+            android:gravity="center"
+            android:text=">"
+            android:textColor="@color/accent_ice"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:layout_marginStart="8dp" />
+    </LinearLayout>
+
+    <!-- Linear Multi-Segment Bar -->
+    <io.github.metadrama.kestrel.MultiSegmentProgressBar
+        android:id="@+id/segmentBar"
+        android:layout_width="match_parent"
+        android:layout_height="10dp"
+        android:layout_marginTop="8dp" />
+
+    <!-- Expanded Details Section -->
+    <LinearLayout
+        android:id="@+id/layoutExpanded"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="8dp"
+        android:visibility="gone"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:id="@+id/tvShaBadge"
+            android:layout_width="wrap_content"
+            android:layout_height="20dp"
+            android:background="@drawable/badge_background"
+            android:gravity="center"
+            android:paddingStart="6dp"
+            android:paddingEnd="6dp"
+            android:text="@string/sha_verified"
+            android:textColor="@color/accent_ice"
+            android:textSize="10sp"
+            android:layout_marginEnd="6dp" />
+
+        <TextView
+            android:id="@+id/tvDestPath"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:singleLine="true"
+            android:ellipsize="middle"
+            android:textColor="@color/text_secondary"
+            android:textSize="10sp" />
+    </LinearLayout>
+</LinearLayout>

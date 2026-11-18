@@ -1,0 +1,27 @@
+[package]
+name = "kestrel-core"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+
+[dependencies]
+kestrel-proto = { path = "../kestrel-proto" }
+kestrel-store = { path = "../kestrel-store" }
+tokio = { version = "1.43", features = ["full"] }
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "http2", "stream", "gzip", "brotli", "zstd", "json"] }
+bytes = "1.10"
+futures-util = "0.3"
+url = "2.5"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+thiserror = "2.0"
+sha2 = "0.10"
+muxide = { version = "0.5.0", default-features = false, features = ["async"] }
+m3u8-rs = "6.0"
+async-trait = "0.1"
+tracing = "0.1"
+regex = "1.11"
+percent-encoding = "2.3"
+directories = "6.0"
+ulid = "1.2"
