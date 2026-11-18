@@ -2,30 +2,16 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:background="@drawable/card_background"
-    android:padding="10dp"
-    android:layout_marginBottom="8dp">
+    android:orientation="vertical">
 
-    <!-- Top Card Row -->
+    <!-- Top Telemetry & Controls Subcard -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="@drawable/card_background"
         android:orientation="horizontal"
-        android:gravity="center_vertical">
-
-        <!-- 36px MIME Icon Badge -->
-        <TextView
-            android:id="@+id/tvMimeBadge"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
-            android:background="@drawable/badge_background"
-            android:gravity="center"
-            android:text="FILE"
-            android:textColor="@color/accent_ice"
-            android:textSize="11sp"
-            android:textStyle="bold"
-            android:layout_marginEnd="10dp" />
+        android:gravity="center_vertical"
+        android:padding="14dp">
 
         <!-- Info Column -->
         <LinearLayout
@@ -34,16 +20,26 @@
             android:layout_weight="1"
             android:orientation="vertical">
 
+            <!-- Clean Filename Header -->
             <TextView
                 android:id="@+id/tvTitle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:singleLine="true"
-                android:ellipsize="end"
-                android:textColor="@color/text_primary"
-                android:textSize="13sp"
+                android:ellipsize="middle"
+                android:textColor="@color/text_white"
+                android:textSize="14sp"
                 android:textStyle="bold" />
 
+            <!-- Thin Horizontal Progress Line -->
+            <io.github.metadrama.kestrel.ThinProgressBar
+                android:id="@+id/progressLine"
+                android:layout_width="match_parent"
+                android:layout_height="3.5dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="8dp" />
+
+            <!-- Tabular Monospace Telemetry: speed · ETA · size -->
             <TextView
                 android:id="@+id/tvTelemetry"
                 android:layout_width="match_parent"
@@ -51,62 +47,132 @@
                 android:singleLine="true"
                 android:textColor="@color/text_secondary"
                 android:textSize="11sp"
-                android:typeface="monospace"
-                android:layout_marginTop="2dp" />
+                android:typeface="monospace" />
         </LinearLayout>
 
-        <!-- Circular Action Button -->
-        <TextView
-            android:id="@+id/btnAction"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:background="@drawable/circle_button"
-            android:gravity="center"
-            android:text=">"
-            android:textColor="@color/accent_ice"
-            android:textSize="12sp"
-            android:textStyle="bold"
-            android:layout_marginStart="8dp" />
+        <!-- Circular Pause / Progress Ring Button -->
+        <io.github.metadrama.kestrel.ProgressRingButton
+            android:id="@+id/btnRingAction"
+            android:layout_width="38dp"
+            android:layout_height="38dp"
+            android:layout_marginStart="14dp"
+            android:layout_gravity="center_vertical" />
     </LinearLayout>
 
-    <!-- Linear Multi-Segment Bar -->
-    <io.github.metadrama.kestrel.MultiSegmentProgressBar
-        android:id="@+id/segmentBar"
-        android:layout_width="match_parent"
-        android:layout_height="10dp"
-        android:layout_marginTop="8dp" />
-
-    <!-- Expanded Details Section -->
+    <!-- Segments (8 threads) Section Subcard -->
     <LinearLayout
-        android:id="@+id/layoutExpanded"
+        android:id="@+id/layoutSegmentsCard"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
         android:layout_marginTop="8dp"
-        android:visibility="gone"
-        android:gravity="center_vertical">
+        android:background="@drawable/card_background"
+        android:orientation="vertical"
+        android:padding="14dp">
 
-        <TextView
-            android:id="@+id/tvShaBadge"
-            android:layout_width="wrap_content"
-            android:layout_height="20dp"
-            android:background="@drawable/badge_background"
-            android:gravity="center"
-            android:paddingStart="6dp"
-            android:paddingEnd="6dp"
-            android:text="@string/sha_verified"
-            android:textColor="@color/accent_ice"
-            android:textSize="10sp"
-            android:layout_marginEnd="6dp" />
-
-        <TextView
-            android:id="@+id/tvDestPath"
-            android:layout_width="0dp"
+        <!-- Header Row with Title and Chevron Toggle -->
+        <LinearLayout
+            android:id="@+id/layoutSegmentsHeader"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:singleLine="true"
-            android:ellipsize="middle"
-            android:textColor="@color/text_secondary"
-            android:textSize="10sp" />
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:clickable="true"
+            android:focusable="true">
+
+            <TextView
+                android:id="@+id/tvSegmentsTitle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/segments_header"
+                android:textColor="@color/text_primary"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvSegmentsChevron"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="⌄"
+                android:textColor="@color/text_secondary"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:paddingStart="8dp"
+                android:paddingEnd="4dp" />
+        </LinearLayout>
+
+        <!-- Expandable Content: 8 Equalizer Thread Bars & Footer -->
+        <LinearLayout
+            android:id="@+id/layoutSegmentsContent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="12dp">
+
+            <!-- 8 Vertical Equalizer Thread Bars Filling Upward in Ice-Blue -->
+            <io.github.metadrama.kestrel.EqualizerSegmentsView
+                android:id="@+id/equalizerView"
+                android:layout_width="match_parent"
+                android:layout_height="70dp" />
+
+            <!-- Footer: Folder Path Pill & Emerald Verified Badge -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginTop="12dp">
+
+                <!-- Folder Path Pill -->
+                <LinearLayout
+                    android:id="@+id/layoutFolderPill"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/folder_pill_background"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingStart="10dp"
+                    android:paddingEnd="12dp"
+                    android:paddingTop="5dp"
+                    android:paddingBottom="5dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="📁"
+                        android:textSize="10sp"
+                        android:layout_marginEnd="6dp" />
+
+                    <TextView
+                        android:id="@+id/tvFolderDest"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/default_folder"
+                        android:textColor="@color/text_primary"
+                        android:textSize="11sp" />
+                </LinearLayout>
+
+                <View
+                    android:layout_width="0dp"
+                    android:layout_height="1dp"
+                    android:layout_weight="1" />
+
+                <!-- Emerald SHA-256 Verified Badge -->
+                <TextView
+                    android:id="@+id/tvShaBadge"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/verified_badge_background"
+                    android:paddingStart="10dp"
+                    android:paddingEnd="10dp"
+                    android:paddingTop="5dp"
+                    android:paddingBottom="5dp"
+                    android:text="@string/sha_verified"
+                    android:textColor="@color/emerald_verified"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+        </LinearLayout>
     </LinearLayout>
+
 </LinearLayout>

@@ -8,246 +8,510 @@ export struct DownloadItem {
     id: string,
     title: string,
     dest_path: string,
-    mime_badge: string,
     status: string,
     progress: float,
     telemetry: string,
     is_active: bool,
     is_expanded: bool,
+    is_completed: bool,
+    sha256_verified: bool,
     segments: [SegmentData],
 }
 
-component SegmentTrack inherits Rectangle {
-    in property <[SegmentData]> segments;
-    height: 12px;
-    border-radius: 6px;
-    background: #0E1013;
-    border-width: 1px;
-    border-color: #23272F;
-    clip: true;
+// Falcon vector icon (flying falcon silhouette)
+component FalconIcon inherits Rectangle {
+    width: 22px;
+    height: 22px;
 
-    HorizontalLayout {
-        spacing: 2px;
-        padding: 1px;
-        for seg in root.segments : Rectangle {
-            horizontal-stretch: 1;
-            border-radius: 4px;
-            background: #1B1E24;
-            clip: true;
+    Path {
+        width: 100%;
+        height: 100%;
+        viewbox-width: 24;
+        viewbox-height: 24;
+        fill: #C8D0DC;
+        commands: "M 2.5 13.5 C 4.2 11.2 7.5 9.8 11 9.5 C 9.2 7 7 5.2 4.5 4 C 9.8 3.5 15.2 5.5 19 9.8 C 21.5 12.6 22.8 14.8 22 16.2 C 19.5 16 17 15.2 14.8 16 C 17.5 18.2 19.5 21 19.2 22 C 16.5 21 14.2 19 12 18 C 10.2 19 8 20.2 6 21.2 C 7.8 18.5 8.5 16.2 7.8 15 C 6 15 4.2 14.2 2.5 13.5 Z";
+    }
+}
+
+// Circular pause/action button with outer progress ring
+component PauseRingButton inherits Rectangle {
+    in property <float> progress: 0.45;
+    in property <bool> is_active: true;
+    callback clicked();
+
+    width: 32px;
+    height: 32px;
+
+    // Outer track ring
+    Rectangle {
+        width: 32px;
+        height: 32px;
+        border-radius: 16px;
+        border-width: 2px;
+        border-color: #262A34;
+    }
+
+    // Outer progress ring indicator (ice-blue progress arc)
+    Rectangle {
+        width: 32px;
+        height: 32px;
+        border-radius: 16px;
+        border-width: 2px;
+        border-color: #7CB4D8;
+        opacity: 0.85;
+    }
+
+    // Inner button surface
+    inner := Rectangle {
+        width: 24px;
+        height: 24px;
+        border-radius: 12px;
+        background: touch.has-hover ? #222733 : #181B22;
+        animate background { duration: 150ms; }
+
+        if root.is_active : HorizontalLayout {
+            alignment: center;
+            spacing: 3px;
+            padding-top: 6px;
+            padding-bottom: 6px;
 
             Rectangle {
-                x: 0;
-                width: parent.width * clamp(seg.fill_ratio, 0.0, 1.0);
-                background: seg.active ? #7CB4D8 : #4A708B;
-                border-radius: 3px;
-                animate width { duration: 100ms; easing: ease-out; }
+                width: 2.5px;
+                height: 10px;
+                border-radius: 1px;
+                background: #7CB4D8;
             }
+            Rectangle {
+                width: 2.5px;
+                height: 10px;
+                border-radius: 1px;
+                background: #7CB4D8;
+            }
+        }
+
+        if !root.is_active : Path {
+            width: 10px;
+            height: 10px;
+            viewbox-width: 12;
+            viewbox-height: 12;
+            fill: #7CB4D8;
+            commands: "M 3 2 L 10 6 L 3 10 Z";
+            x: 8px;
+            y: 7px;
+        }
+    }
+
+    touch := TouchArea {
+        clicked => { root.clicked(); }
+    }
+}
+
+// Active Download Card: filename header, horizontal bar, pause ring, monospace telemetry
+component ActiveDownloadCard inherits Rectangle {
+    in-out property <DownloadItem> item;
+    callback toggle_pause(string);
+
+    border-radius: 14px;
+    background: #181B22E6;
+    border-width: 1px;
+    border-color: #262A34;
+    padding: 14px;
+
+    HorizontalLayout {
+        spacing: 12px;
+        alignment: center;
+
+        // Telemetry & progress info
+        VerticalLayout {
+            horizontal-stretch: 1;
+            spacing: 8px;
+
+            // Clean filename header
+            Text {
+                text: root.item.title;
+                color: #F1F5F9;
+                font-size: 13.5px;
+                font-weight: 600;
+                overflow: elide;
+            }
+
+            // Horizontal progress bar
+            Rectangle {
+                height: 5px;
+                border-radius: 2.5px;
+                background: #232732;
+                clip: true;
+
+                Rectangle {
+                    x: 0;
+                    y: 0;
+                    height: 100%;
+                    width: parent.width * clamp(root.item.progress, 0.0, 1.0);
+                    border-radius: 2.5px;
+                    background: #7CB4D8;
+                    animate width { duration: 150ms; easing: ease-out; }
+                }
+            }
+
+            // Tabular monospace telemetry: "142.8 MB/s · 18s left · 4.8 GB"
+            Text {
+                text: root.item.telemetry;
+                color: #7E8B9B;
+                font-size: 11px;
+                font-family: "monospace";
+            }
+        }
+
+        // Circular pause/action button with outer progress ring
+        PauseRingButton {
+            progress: root.item.progress;
+            is_active: root.item.is_active;
+            clicked => { root.toggle_pause(root.item.id); }
         }
     }
 }
 
-component DownloadCard inherits Rectangle {
+// "Segments (8 threads)" expandable card: 8 vertical pill columns filling upward
+component SegmentsCard inherits Rectangle {
     in-out property <DownloadItem> item;
-    callback toggle_pause(string);
     callback toggle_expand(string);
 
     border-radius: 14px;
-    background: #14161ACC;
+    background: #181B22E6;
     border-width: 1px;
-    border-color: #FFFFFF1A;
-    clip: true;
+    border-color: #262A34;
+    padding: 14px;
 
     VerticalLayout {
-        padding: 10px;
-        spacing: 8px;
+        spacing: 12px;
 
-        HorizontalLayout {
-            spacing: 10px;
-            alignment: center;
+        // Header: "Segments (8 threads)" + Chevron
+        TouchArea {
+            clicked => { root.toggle_expand(root.item.id); }
 
-            // Vector MIME Badge
-            Rectangle {
-                width: 36px;
-                height: 36px;
-                border-radius: 8px;
-                background: #1E222A;
-                border-width: 1px;
-                border-color: #2F3542;
+            HorizontalLayout {
+                alignment: space-between;
 
                 Text {
-                    text: root.item.mime_badge;
-                    color: #7CB4D8;
-                    font-size: 11px;
-                    font-weight: 700;
-                    horizontal-alignment: center;
-                    vertical-alignment: center;
-                }
-            }
-
-            // Info column
-            VerticalLayout {
-                horizontal-stretch: 1;
-                spacing: 2px;
-
-                Text {
-                    text: root.item.title;
-                    color: #F4F6F9;
+                    text: "Segments (8 threads)";
+                    color: #D2D8E2;
                     font-size: 13px;
                     font-weight: 600;
-                    overflow: elide;
+                    vertical-alignment: center;
                 }
 
-                Text {
-                    text: root.item.telemetry;
-                    color: #A0A5AD;
-                    font-size: 11px;
-                    font-family: "monospace";
+                Path {
+                    width: 12px;
+                    height: 7px;
+                    viewbox-width: 12;
+                    viewbox-height: 7;
+                    stroke: #7E8B9B;
+                    stroke-width: 1.5px;
+                    commands: root.item.is_expanded ? "M 1 6 L 6 1 L 11 6" : "M 1 1 L 6 6 L 11 1";
+                    y: 4px;
+                }
+            }
+        }
+
+        // 8 vertical pill columns filling upward in ice-blue with dark tracks
+        if root.item.is_expanded : HorizontalLayout {
+            spacing: 6px;
+            height: 68px;
+            animate height { duration: 180ms; easing: ease-out; }
+
+            for seg in root.item.segments : Rectangle {
+                horizontal-stretch: 1;
+                border-radius: 4px;
+                background: #1F232D;
+                clip: true;
+
+                // Fills upward from the bottom
+                Rectangle {
+                    x: 0;
+                    width: parent.width;
+                    y: parent.height - self.height;
+                    height: parent.height * clamp(seg.fill_ratio, 0.0, 1.0);
+                    border-radius: 3px;
+                    background: seg.active ? #7CB4D8 : #5A85A3;
+                    animate height { duration: 120ms; easing: ease-out; }
+                }
+            }
+        }
+
+        // Card footer: Folder badge (~/Downloads) and emerald SHA-256 Verified badge
+        HorizontalLayout {
+            alignment: space-between;
+
+            // Folder badge
+            Rectangle {
+                border-radius: 6px;
+                background: #20242E;
+                height: 24px;
+                padding-left: 8px;
+                padding-right: 8px;
+
+                HorizontalLayout {
+                    spacing: 6px;
+                    alignment: center;
+
+                    Path {
+                        width: 13px;
+                        height: 11px;
+                        viewbox-width: 16;
+                        viewbox-height: 14;
+                        fill: #7CB4D8;
+                        commands: "M 1 2 C 1 1.4 1.4 1 2 1 L 6 1 L 8 3 L 14 3 C 14.6 3 15 3.4 15 4 L 15 12 C 15 12.6 14.6 13 14 13 L 2 13 C 1.4 13 1 12.6 1 12 Z";
+                    }
+
+                    Text {
+                        text: root.item.dest_path != "" ? root.item.dest_path : "~/Downloads";
+                        color: #8E9AA8;
+                        font-size: 11px;
+                        vertical-alignment: center;
+                    }
                 }
             }
 
-            // Circular Pause/Resume Ring Button
-            TouchArea {
-                width: 32px;
-                height: 32px;
-                clicked => { root.toggle_pause(root.item.id); }
+            // Emerald SHA-256 Verified badge
+            Rectangle {
+                border-radius: 6px;
+                background: #0E2820;
+                border-width: 1px;
+                border-color: #10B98144;
+                height: 24px;
+                padding-left: 8px;
+                padding-right: 8px;
 
-                Rectangle {
-                    width: 32px;
-                    height: 32px;
-                    border-radius: 16px;
-                    background: #1E222A;
-                    border-width: 1px;
-                    border-color: #7CB4D844;
+                HorizontalLayout {
+                    alignment: center;
 
                     Text {
-                        text: root.item.is_active ? "||" : ">";
-                        color: #7CB4D8;
-                        font-size: 12px;
-                        font-weight: 700;
-                        horizontal-alignment: center;
+                        text: "SHA-256 Verified";
+                        color: #34D399;
+                        font-size: 10.5px;
+                        font-weight: 600;
                         vertical-alignment: center;
                     }
                 }
             }
         }
-
-        // Linear multi-segment bar
-        SegmentTrack {
-            segments: root.item.segments;
-        }
-
-        // Expanded view details
-        if (root.item.is_expanded) : HorizontalLayout {
-            spacing: 6px;
-            animate height { duration: 180ms; easing: ease-out; }
-
-            Rectangle {
-                border-radius: 6px;
-                background: #1B1E24;
-                padding-left: 6px;
-                padding-right: 6px;
-                height: 20px;
-
-                Text {
-                    text: "SHA-256 Verified";
-                    color: #7CB4D8;
-                    font-size: 10px;
-                    vertical-alignment: center;
-                }
-            }
-
-            Rectangle {
-                border-radius: 6px;
-                background: #1B1E24;
-                padding-left: 6px;
-                padding-right: 6px;
-                height: 20px;
-
-                Text {
-                    text: root.item.dest_path;
-                    color: #A0A5AD;
-                    font-size: 10px;
-                    overflow: elide;
-                    vertical-alignment: center;
-                }
-            }
-        }
-    }
-
-    TouchArea {
-        clicked => { root.toggle_expand(root.item.id); }
     }
 }
 
-export component KestrelApp inherits Window {
-    width: 380px;
-    height: 600px;
-    title: "Kestrel";
-    background: #0E1013;
+// Completed Card: Minimalist checkmark, filename, and Completed status
+component CompletedCard inherits Rectangle {
+    in property <DownloadItem> item;
 
-    in-out property <[DownloadItem]> items: [];
+    border-radius: 14px;
+    background: #181B22E6;
+    border-width: 1px;
+    border-color: #262A34;
+    padding: 14px;
+
+    HorizontalLayout {
+        spacing: 12px;
+        alignment: center;
+
+        // Minimalist checkmark
+        Rectangle {
+            width: 28px;
+            height: 28px;
+            border-radius: 14px;
+            background: #1F2430;
+
+            Path {
+                width: 14px;
+                height: 14px;
+                viewbox-width: 16;
+                viewbox-height: 16;
+                stroke: #7CB4D8;
+                stroke-width: 2px;
+                commands: "M 3 8 L 7 12 L 13 4";
+                x: 7px;
+                y: 7px;
+            }
+        }
+
+        VerticalLayout {
+            horizontal-stretch: 1;
+            spacing: 3px;
+
+            Text {
+                text: root.item.title;
+                color: #E2E8F0;
+                font-size: 13.5px;
+                font-weight: 500;
+                overflow: elide;
+            }
+
+            Text {
+                text: "Completed";
+                color: #64748B;
+                font-size: 11px;
+            }
+        }
+    }
+}
+
+// Item card router
+component DownloadCardContainer inherits VerticalLayout {
+    in-out property <DownloadItem> item;
+    callback toggle_pause(string);
+    callback toggle_expand(string);
+
+    spacing: 10px;
+
+    if !root.item.is_completed : ActiveDownloadCard {
+        item: root.item;
+        toggle_pause(id) => { root.toggle_pause(id); }
+    }
+
+    if !root.item.is_completed : SegmentsCard {
+        item: root.item;
+        toggle_expand(id) => { root.toggle_expand(id); }
+    }
+
+    if root.item.is_completed : CompletedCard {
+        item: root.item;
+    }
+}
+
+// Main Window Container: Floating matte frosted dark glass capsule
+export component KestrelApp inherits Window {
+    title: "Kestrel";
+    width: 420px;
+    height: 580px;
+    background: transparent;
+
+    in-out property <[DownloadItem]> items: [
+        {
+            id: "dl-1",
+            title: "ubuntu-26.04-desktop-amd64.iso",
+            dest_path: "~/Downloads",
+            status: "Active",
+            progress: 0.42,
+            telemetry: "142.8 MB/s · 18s left · 4.8 GB",
+            is_active: true,
+            is_expanded: true,
+            is_completed: false,
+            sha256_verified: true,
+            segments: [
+                { index: 0, fill_ratio: 0.92, active: true },
+                { index: 1, fill_ratio: 0.32, active: true },
+                { index: 2, fill_ratio: 0.45, active: true },
+                { index: 3, fill_ratio: 0.58, active: true },
+                { index: 4, fill_ratio: 0.74, active: true },
+                { index: 5, fill_ratio: 0.12, active: true },
+                { index: 6, fill_ratio: 0.08, active: true },
+                { index: 7, fill_ratio: 0.02, active: true },
+            ]
+        },
+        {
+            id: "dl-2",
+            title: "Ableton_Live_12_Suite.dmg",
+            dest_path: "~/Downloads",
+            status: "Completed",
+            progress: 1.0,
+            telemetry: "Done · 2.4 GB",
+            is_active: false,
+            is_expanded: false,
+            is_completed: true,
+            sha256_verified: true,
+            segments: []
+        }
+    ];
+
     in-out property <string> url_input: "";
     callback enqueue_url(string);
     callback toggle_pause(string);
     callback toggle_expand(string);
 
-    VerticalLayout {
-        padding: 12px;
-        spacing: 10px;
+    // Floating matte frosted dark glass capsule
+    Rectangle {
+        width: 100%;
+        height: 100%;
+        border-radius: 16px;
+        background: #12141AE6;
+        border-width: 1px;
+        border-color: #262A34;
+        clip: true;
 
-        // Header & Quick Add Capsule
-        Rectangle {
-            height: 48px;
-            border-radius: 20px;
-            background: #14161ACC;
-            border-width: 1px;
-            border-color: #FFFFFF1A;
+        VerticalLayout {
+            padding: 12px;
+            spacing: 12px;
 
+            // Header Bar: Falcon icon + "Kestrel" + sleek rounded pill search/paste input
             HorizontalLayout {
-                padding: 6px;
-                spacing: 8px;
+                height: 38px;
+                alignment: space-between;
 
-                TextInput {
-                    text <=> root.url_input;
-                    color: #F4F6F9;
-                    font-size: 13px;
-                    vertical-alignment: center;
-                    horizontal-stretch: 1;
-                }
+                // Left: Falcon vector/icon + "Kestrel" typography
+                HorizontalLayout {
+                    spacing: 8px;
+                    alignment: center;
 
-                Rectangle {
-                    width: 36px;
-                    height: 36px;
-                    border-radius: 18px;
-                    background: #7CB4D8;
-
-                    Text {
-                        text: "+";
-                        color: #14161A;
-                        font-size: 18px;
-                        font-weight: 700;
-                        horizontal-alignment: center;
-                        vertical-alignment: center;
+                    FalconIcon {
+                        width: 22px;
+                        height: 22px;
                     }
 
-                    TouchArea {
-                        clicked => {
-                            if (root.url_input != "") {
-                                root.enqueue_url(root.url_input);
-                                root.url_input = "";
+                    Text {
+                        text: "Kestrel";
+                        color: #F8FAFC;
+                        font-size: 17px;
+                        font-weight: 700;
+                        vertical-alignment: center;
+                    }
+                }
+
+                // Right: Sleek rounded pill search/paste input ("Search or paste URL")
+                Rectangle {
+                    width: 200px;
+                    height: 36px;
+                    border-radius: 18px;
+                    background: #161922;
+                    border-width: 1px;
+                    border-color: #262A34;
+
+                    HorizontalLayout {
+                        padding-left: 14px;
+                        padding-right: 14px;
+                        alignment: center;
+
+                        TextInput {
+                            text <=> root.url_input;
+                            color: #F1F5F9;
+                            font-size: 11.5px;
+                            vertical-alignment: center;
+                            horizontal-stretch: 1;
+
+                            accepted => {
+                                if (root.url_input != "") {
+                                    root.enqueue_url(root.url_input);
+                                    root.url_input = "";
+                                }
                             }
+                        }
+
+                        if root.url_input == "" : Text {
+                            text: "Search or paste URL";
+                            color: #64748B;
+                            font-size: 11.5px;
+                            vertical-alignment: center;
                         }
                     }
                 }
             }
-        }
 
-        // Active Downloads List
-        ListView {
-            for item in root.items : DownloadCard {
-                item: item;
-                toggle_pause(id) => { root.toggle_pause(id); }
-                toggle_expand(id) => { root.toggle_expand(id); }
+            // Cards Scroll / List View
+            ListView {
+                spacing: 10px;
+
+                for item in root.items : DownloadCardContainer {
+                    item: item;
+                    toggle_pause(id) => { root.toggle_pause(id); }
+                    toggle_expand(id) => { root.toggle_expand(id); }
+                }
             }
         }
     }

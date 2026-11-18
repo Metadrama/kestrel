@@ -1,14 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="bg_dark">#0E1013</color>
-    <color name="card_bg">#14161A</color>
-    <color name="card_border">#1AFFFFFF</color>
+    <!-- Obsidian Dark Frosted Glass Theme -->
+    <color name="bg_obsidian">#12141A</color>
+    <color name="card_obsidian">#181B22</color>
+    <color name="border_obsidian">#232732</color>
+    <color name="border_light">#2E3442</color>
+    
+    <!-- Legacy aliases for icons/compatibility -->
+    <color name="bg_dark">#12141A</color>
+    <color name="card_bg">#181B22</color>
+    <color name="card_border">#232732</color>
     <color name="accent_ice">#7CB4D8</color>
     <color name="accent_ice_dark">#4A708B</color>
-    <color name="text_primary">#F4F6F9</color>
-    <color name="text_secondary">#A0A5AD</color>
-    <color name="badge_bg">#1E222A</color>
-    <color name="badge_border">#2F3542</color>
-    <color name="track_bg">#0E1013</color>
-    <color name="track_cell_bg">#1B1E24</color>
+    <color name="badge_bg">#1E222B</color>
+    <color name="badge_border">#2D3444</color>
+    
+    <!-- Accent Colors -->
+    <color name="accent_ice_blue">#7CB4D8</color>
+    <color name="accent_ice_blue_muted">#4A708B</color>
+    <color name="emerald_verified">#34D399</color>
+    <color name="emerald_badge_bg">#132B25</color>
+    <color name="emerald_badge_border">#1D4436</color>
+    
+    <!-- Text Colors -->
+    <color name="text_white">#FFFFFF</color>
+    <color name="text_primary">#F3F4F6</color>
+    <color name="text_secondary">#9CA3AF</color>
+    <color name="text_muted">#6B7280</color>
+    
+    <!-- UI Component Colors -->
+    <color name="pill_bg">#1E222B</color>
+    <color name="pill_border">#2D3444</color>
+    <color name="thread_bar_track">#161920</color>
+    <color name="thread_bar_border">#252A36</color>
+    <color name="floating_pill_bg">#1C2028</color>
+    <color name="floating_pill_border">#2E3442</color>
+    <color name="progress_track">#232732</color>
 </resources>

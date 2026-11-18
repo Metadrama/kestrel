@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Kestrel</string>
-    <string name="url_hint">Paste link (Direct, HLS, X, Reddit, YT)...</string>
+    <string name="url_hint">Search or paste URL</string>
     <string name="sha_verified">SHA-256 Verified</string>
+    <string name="completed">Completed</string>
+    <string name="segments_header">Segments (8 threads)</string>
+    <string name="default_folder">~/Downloads</string>
+    <string name="add_download_title">Add Download</string>
+    <string name="btn_download">Download</string>
+    <string name="btn_cancel">Cancel</string>
 </resources>
